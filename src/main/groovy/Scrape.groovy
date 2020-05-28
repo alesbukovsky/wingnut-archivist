@@ -1,11 +1,13 @@
 import geb.Browser
 
 cfg = [
-    'rootUrl'    : 'http://www.wingnutwings.com/ww/',
-    'outputFile' : args[0]
+    'rootUrl'      : 'http://www.wingnutwings.com/ww/',
+    'schemes'      : args[0],
+    'instructions' : args[1]
 ]
 
-def output = new File(cfg.outputFile)
+def schemes = new File(cfg.schemes)
+def instructions = new File(cfg.instructions)
 
 Browser.drive {
     println "Scrape: ${cfg.rootUrl}"
@@ -19,17 +21,51 @@ Browser.drive {
     ks.plus(ds).eachWithIndex { p, x ->
         println "Product [${x + 1}]: ${p}"
         go p
+        
         def l = $('a', text:'Colour schemes')
         if (l) {
             l.click()
             def is = $('a', class: 'lightboxlink')
-            println "  - ${is.size()} color schemes"
+            println "  - ${is.size()} color scheme(s)"
             is.each { i ->
                 println "  - ${i.attr('href')}"
-                output << '"' + i.attr('href') + '"\n'
+                schemes << '"' + i.attr('href') + '"\n'
             }
         } else {
             println '  - no color schemes page'
+        }
+
+        l =  $('a', text:'Instructions')
+        if (l) {
+            l.click()
+            def is = $('a', class: 'lightboxlink')
+            println "  - ${is.size()} instruction sheet(s)"
+            is.each { i ->
+                println "  - ${i.attr('href')}"
+                instructions << '"' + i.attr('href') + '"\n'
+            }
+
+            is = $('a', class: 'lightboxpdflink')
+            println "  - ${is.size()} instruction pdf file(s)"
+            is.each { i ->
+                println "  - ${i.attr('href')}"
+                instructions << '"' + i.attr('href') + '"\n'
+            }
+        } else {
+            println '  - no instructions page'
+        }
+
+        l =  $('a', text:'Hints & Tips')
+        if (l) {
+            l.click()
+            def is = $('a', class: 'lightboxlink')
+            println "  - ${is.size()} hint sheet(s)"
+            is.each { i ->
+                println "  - ${i.attr('href')}"
+                instructions << '"' + i.attr('href') + '"\n'
+            }
+        } else {
+            println '  - no hints page'
         }
     }
 }

@@ -17,17 +17,11 @@ import com.google.rpc.*
 import groovy.io.*
 
 cfg = [
-    'albumName'  : 'Wingnut Wings Archive',
-    'batchSize'  : 50,
-    'tempDir'    : args[0],
-    'apiSecret'  : args[1],
-    'rootDir'    : args[2],
-    'appendLogs' : Boolean.parseBoolean(args[3]),
-    'albumId'    : args[4].toLowerCase() == 'create' ? null : args[4]
+    'albumName'  : 'Wingnut Wings ' + args[0],
+    'sourceDir'  : args[1],
+    'apiSecret'  : args[2],
+    'batchSize'  : 35
 ]
-
-trace = new PrintWriter(new FileWriter(cfg.tempDir + '/traces', cfg.appendLogs))
-error = new PrintWriter(new FileWriter(cfg.tempDir + '/errors', cfg.appendLogs))
 
 def upload(PhotosLibraryClient c, a, List<File> l) {
     println "Uploading ${l.size()} files"
@@ -49,23 +43,14 @@ def upload(PhotosLibraryClient c, a, List<File> l) {
             if (!res.getError().isPresent()) {
                 trail[res.getUploadToken().get()] = f.getCanonicalPath()
 
-                def name = f.getName()
-                name = name.replace('%20', ' ')
-                name = name.replace('+', '-')
-                name = name.replace('. ', ' - ')
-                name = name.replace('  ', ' ')
-                name = name.replace('..', '.')
-                name = name.replace('.jpg.jpg', '.jpg')
-                name = name.replace('.JPG', '.jpg')
-
-                def desc = name
+                def desc = f.getName()
                 desc = desc.replace('~', '/')
                 desc = desc.replace('.jpg', '')
 
-                items << NewMediaItemFactory.createNewMediaItem(res.getUploadToken().get(), name, desc)
+                items << NewMediaItemFactory.createNewMediaItem(res.getUploadToken().get(), f.getName(), desc)
 
             } else {
-                error.println "ERR: ${f.getCanonicalPath()}"
+                println "ERROR: ${f.getCanonicalPath()}"
             }
         }
     }
@@ -78,11 +63,10 @@ def upload(PhotosLibraryClient c, a, List<File> l) {
     res.getNewMediaItemResultsList().each { r ->
         if (r.getStatus().getCode() == Code.OK_VALUE) {
             ids << r.getMediaItem().id
-            trace.println "${r.getMediaItem().getFilename()}"
         } else if (r.getStatus().getCode() == Code.ALREADY_EXISTS_VALUE) {
-            error.println "DUP: ${trail[r.getUploadToken()]}"
+            println "DUPLICATE: ${trail[r.getUploadToken()]}"
         } else {
-            error.println "ERR: ${trail[r.getUploadToken()]}"
+            println "ERROR: ${trail[r.getUploadToken()]}"
         }
     }
 
@@ -94,7 +78,7 @@ println "Authenticating"
 
 JsonFactory json = new JacksonFactory()
 GoogleClientSecrets secret = GoogleClientSecrets.load(json, new FileReader(cfg.apiSecret))
-DataStore<StoredCredential> store = new FileDataStoreFactory(new File(cfg.tempDir)).getDataStore('credentials');
+DataStore<StoredCredential> store = new FileDataStoreFactory(new File('./build')).getDataStore('credentials');
 
 List<String> scopes = [
     'https://www.googleapis.com/auth/photoslibrary.appendonly'
@@ -121,31 +105,23 @@ println "Setting up API client"
 PhotosLibraryClient client = PhotosLibraryClient.initialize(settings)
 client.withCloseable {
 
-    def album = cfg.albumId
-    if (!album) {
-        album = client.createAlbum(cfg.albumName).id
-        println "Album created: $album"
-    } else {
-        println "Using existing album: $album"
-    }
+    def album = client.createAlbum(cfg.albumName)
+    println "Album created: ${album.title} [${album.id}]"
 
     def batch = []
-    def root = new File(cfg.rootDir)
+    def source = new File(cfg.sourceDir)
 
-    println "Traversing root: ${root.getCanonicalPath()}"
-
-    root.traverse(type: FileType.FILES, nameFilter: ~/(?i).*\.jpe?g/, maxDepth: -1) { f ->
+    println "Traversing source directory: ${source.getCanonicalPath()}"
+    
+    source.traverse(type: FileType.FILES, nameFilter: ~/(?i).*\.jpe?g/, maxDepth: -1, sort: { a, b -> a.name <=> b.name } ) { f ->
         batch << f
         if (batch.size() >= cfg.batchSize) {
-            upload(client, album, batch)
+            upload(client, album.id, batch)
             batch.clear()
         }
     }
     if (!batch.empty) {
-        upload(client, album, batch)
+        upload(client, album.id, batch)
         batch.clear()
     }
 }
-
-error.close()
-trace.close()

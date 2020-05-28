@@ -1,10 +1,16 @@
 ## Wingnut Archivist
 
-A set of _ad-hoc_ tools for archiving images from [Wingnut Wings](http://www.wingnutwings.com/) website after it closed down in April 2020. The intention is to preserve this valuable resource for WWI aircraft enthusiasts, not to infringe on any potential copyright.
+A set of _ad-hoc_ tools for archiving images from [Wingnut Wings](http://www.wingnutwings.com/) website after the company abruptly closed down in April 2020. The intention is to preserve this valuable resource for WWI aircraft enthusiasts, not to infringe on any potential copyright.
 
-The archive (4652 images) is currently available [here](https://photos.app.goo.gl/PkGkLX5gRzKTrzrB7).
+The archive is currently available thru the following links:
 
-Note that the following is not a read-to-go software kit, there is still a good deal of manual tweaking needed.
+* [Photos](https://photos.app.goo.gl/tz5UqyQuMSqadqwd9) (4096 images)
+* [Photos WW2](https://photos.app.goo.gl/z87r239Rp1X3ZxET9) (89 images)
+* [Color Schemes](https://photos.app.goo.gl/dnVYpQkzPd12HYY68) (445 images)
+* [Instructions](https://photos.app.goo.gl/8U5ECGuXA2YVuzgu7) (2316 images)
+* [Instruction booklets](https://drive.google.com/drive/folders/16cwiJkI8oHhw9HQiJQfYoKfqOCYi8Szv?usp=sharing) (90 PDF files)
+
+Note that this is not a read-to-go software kit. There is still a good deal of manual tweaking needed.
 
 #### Observations
 
@@ -12,8 +18,26 @@ Note that the following is not a read-to-go software kit, there is still a good 
 * Image name is essentially a short description.
 * Image thumbnails have the same name as originals, only with `thumb_` prefix.
 * All photos linked to individual products (kits or decals) is also published in the gallery.
+* Google Photo API appears to detect, although not always, identical images under different file names.
 
-#### Scraping Gallery Photos
+#### Basic Tools
+
+File download based on the list of URLs. This effectively overrides possible duplicates with the same file name:
+```
+xargs -n 1 curl -O < ../../data/archive-urls.txt
+```
+
+Reformatting file names using regular expressions with [`rename`](https://formulae.brew.sh/formula/rename):
+```
+rename 's/%20/ /g' *
+```
+
+If the number of files is too large (resulting in "_argument list too long_" error), the renaming needs to be piped with `find` command:
+```
+find . -exec rename 's/%20/ /g' {} +
+```
+
+#### Scraping Galleries
 
 Used Firefox developer tools to capture thumbnail images requests as manually clicked thru gallery pages. Filtered those by `thumb_` prefix and exported in [HAR](https://en.wikipedia.org/wiki/HAR_(file_format)) format.
 
@@ -24,19 +48,16 @@ jq ".log.entries[] | .request.url" ./data/archive.har > ./data/archive-urls.txt
 
 Removed `thumb_` prefixes from all URLs.
 
-Downloaded original images. This effectively overrides possible duplicates with the same file name:
-```
-xargs -n 1 curl -O < ./data/archive-urls.txt
-```
+#### Scraping Products
 
-#### Scraping Color Schemes
+Color schemes, instructions and hint sheets are only available on the individual product pages, i.e. kits and decals.
 
-Color schemes are only available on the individual product pages, i.e. kits and decals.
-
-Used [geb](https://gebish.org/) tool and a headless browser to traverse the dynamically modified HTML.
+Used [geb](https://gebish.org/) tool and a headless browser to traverse the dynamically modified HTML and obtain the URLs.
 ```
 gradle scrape
 ```
+
+Few remaining images were downloaded manually from the general Hints & Tips section.
 
 #### Uploading
 
@@ -45,20 +66,4 @@ Used Google [Photos API](https://developers.google.com/photos/library/guides/ove
 gradle upload
 ```
   
-The original file names are partially reformatted for readability, e.g. HTML `%20` entity is replaced with a space character.
-
-The image description is derived from the file name with additional formatting, e.g. `~` is replaced with `/`.
-
-
-#### Analysis
-
-Post-upload analysis reveals that Google Photos apparently applies a degree of duplicate image detection. 
-```
-gradle analyze
-```
-
-There are however discrepancies. Total of 4701 images were uploaded. The API rejected 1 of them right away with "already exists" error. Nevertheless the album ended up with 4657 images. There are instances of the same picture under similar file names. The API detected 48 of such cases, bringing the expected count to 4652. Further comparison of the downloaded archive revealed 5 images were actually uploaded twice for an unknown reason. Removing these manually settles the count.
-
-It should be noted however that there are still images in the album that look identical. The corresponding file name are rather different though. It unclear how Google Photos determines the duplicate.
-
-
+Instruction booklets (PDF) were uploaded manually to a shared folder in Google Drive.

@@ -30,7 +30,8 @@ task scrape(type: JavaExec) {
     systemProperty 'webdriver.gecko.driver', '/usr/local/Cellar/geckodriver/0.26.0/bin/geckodriver'
     systemProperty 'geb.driver', 'firefox'
     args = [
-        './data/scheme-urls.txt'
+        './data/archive-kit-urls.txt',
+        './data/color-kit-urls.txt'
     ]
 }
 
@@ -38,20 +39,8 @@ task upload(type: JavaExec) {
     main = 'Upload'
     classpath = sourceSets.main.runtimeClasspath
     args = [
-        './build',
+        'Photos',
+        './local/photo',
         './local/client_secret.json',
-        './local/pile',
-        'false',
-        'create'
     ]
 }
-
-task analyze(type: JavaExec) {
-    main = 'Analyze'
-    classpath = sourceSets.main.runtimeClasspath
-    args = [
-        './build/traces',
-        './build/downloads'
-    ]
-}
-
