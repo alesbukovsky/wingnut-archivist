@@ -1,14 +1,18 @@
 ## Wingnut Archivist
 
-A set of _ad-hoc_ tools for archiving images from [Wingnut Wings](http://www.wingnutwings.com/) website after the company abruptly closed down in April 2020. The intention is to preserve this valuable resource for WWI aircraft enthusiasts, not to infringe on any potential copyright.
+A set of _ad-hoc_ tools for archiving images from [Wingnut Wings](http://www.wingnutwings.com/) website after the company abruptly closed down in April 2020. The intention is to preserve this valuable resource for WWI aircraft enthusiasts, not to infringe on any potential copyright. Aside from minor file name reformatting all the files are unaltered.
 
-The archive is currently available thru the following links:
+The archive was eventually moved from Google Photos albums to a shared folder in Google Drive:
 
-* [Photos](https://photos.app.goo.gl/tz5UqyQuMSqadqwd9) (4096 images)
-* [Photos WW2](https://photos.app.goo.gl/z87r239Rp1X3ZxET9) (89 images)
-* [Color Schemes](https://photos.app.goo.gl/dnVYpQkzPd12HYY68) (445 images)
-* [Instructions](https://photos.app.goo.gl/8U5ECGuXA2YVuzgu7) (2316 images)
-* [Instruction booklets](https://drive.google.com/drive/folders/16cwiJkI8oHhw9HQiJQfYoKfqOCYi8Szv?usp=sharing) (90 PDF files)
+https://drive.google.com/drive/folders/1uScvbnCjl5NyBAj8BNfiykUZ-asl9BAN?usp=sharing
+
+The total download size is 2.06 GB. The folder is organized as follows:
+
+* Booklets - 90 PDF files, 917 MB 
+* Instructions - 2323 images, 486 MB
+* Photos - 4123 images, 612 MB
+* Photos WWII - 89 images, 12 MB
+* Schemes - 445 images, 31 MB 
 
 Note that this is not a read-to-go software kit. There is still a good deal of manual tweaking needed.
 
